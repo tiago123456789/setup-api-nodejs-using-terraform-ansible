@@ -1,0 +1,34 @@
+---
+- name: Setup all to running nodejs api
+  hosts: api
+  become: true
+  tasks:
+    - name: Install node.js
+      apt:
+        name: nodejs
+        state: present
+
+    - name: Install npm
+      apt:
+        name: npm
+        state: present
+
+    - name: Install pm2
+      shell: "npm install -g pm2"
+
+    - name: Creates directory
+      ansible.builtin.file:
+        path: ./apps
+        state: directory
+      
+    - name: Create git archive from repo
+      ansible.builtin.git:
+        repo: https://github.com/johnpapa/node-hello 
+        dest: ./apps/node-hello
+        force: true
+
+    - name: Setup project
+      shell: "cd ./apps/node-hello && npm install"
+
+    - name: "Put api to run in pm2"
+      shell: "cd ./apps/node-hello && pm2 start ./index.js --name api -f"
